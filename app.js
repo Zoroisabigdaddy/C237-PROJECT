@@ -161,12 +161,18 @@ app.get('/addbook', checkAuthenticated, (req, res) => {
 });
 
 app.post('/addbook', (req, res) => {
-    const { title, author, category, description } = req.body;
-    const sql = "INSERT INTO book (title, author, category, description) VALUES (?, ?, ?, ?)";
-    db.query(sql, [title, author, category, description], (err) => {
+    console.log("Form data received:", req.body);
+
+    const { title, author, category, date_published, description, stocks } = req.body;
+    const safeStocks = parseInt(stocks) || 0;
+    const availability = safeStocks > 0 ? 'Yes' : 'No';  // 👈 Set based on stocks
+
+    const sql = "INSERT INTO book (title, author, category, date_published, description, stocks, availability) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+    db.query(sql, [title, author, category, date_published, description, safeStocks, availability], (err) => {
         if (err) {
-            console.error(err);
-            return res.send("Error adding book");
+            console.error("SQL error:", err.sqlMessage);
+            return res.send("Error adding book: " + err.sqlMessage);
         }
         res.redirect('/dashboard');
     });
@@ -193,16 +199,22 @@ app.get('/editbook/:id', checkAuthenticated, (req, res) => {
 
 app.post('/editbook/:id', (req, res) => {
     const bookId = req.params.id;
-    const { title, author, category, description } = req.body;
-    const sql = "UPDATE book SET title = ?, author = ?, category = ?, description = ? WHERE id = ?";
-    db.query(sql, [title, author, category, description, bookId], (err) => {
+    const { title, author, category, description, date_published, stocks } = req.body;
+
+    const safeStocks = parseInt(stocks) || 0;
+    const availability = safeStocks > 0 ? 'Yes' : 'No';
+
+    const sql = "UPDATE book SET title = ?, author = ?, category = ?, description = ?, date_published = ?, stocks = ?, availability = ? WHERE id = ?";
+
+    db.query(sql, [title, author, category, description, date_published, safeStocks, availability, bookId], (err) => {
         if (err) {
-            console.error(err);
-            return res.send("Error updating book");
+            console.error("Error updating book:", err.sqlMessage);
+            return res.send("Error updating book: " + err.sqlMessage);
         }
         res.redirect('/dashboard');
     });
 });
+
 
 // Delete Book
 app.get('/deletebook/:id', checkAuthenticated, (req, res) => {
