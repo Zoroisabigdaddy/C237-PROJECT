@@ -64,6 +64,7 @@
                      <th>Title</th>
                     <th>Author</th>
                     <th>Category</th>
+                    <th>description</th>
                     <th>Date Published</th>
                     <th>Stocks</th>
                     <th>Available</th>
@@ -75,8 +76,8 @@
                         <td><%= book.title %></td>
                         <td><%= book.author %></td>
                         <td><%= book.category %></td>
-                        <td><%= book.date_published %></td>
                         <td><%= book.description %></td>
+                        <td><%= book.date_displayed %></td>
                         <td><%= book.stocks %></td>
                         <td><%= book.stocks > 0 ? 'Yes' : 'No' %></td>
                     </tr>
