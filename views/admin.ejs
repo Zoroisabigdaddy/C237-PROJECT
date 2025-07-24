@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-dark {
+            background-color: #343a40;
+        }
+        .container {
+            margin-top: 80px;
+        }
+    </style>
+<body>
+    <body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-dark fixed-top">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Dashboard</span>
+            <div>
+                <span class="text-white me-3">Welcome, <%= user.username %> (<%= user.role %>)</span>
+                <% if (user.role === 'admin') { %>
+                    <a href="/dashboard" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
+                <% } %>
+                <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Add your main dashboard content here -->
+        <p>This is your dashboard content.</p>
+    </div>
+    <div class="container">
+        <table class="table table-striped mt-4">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Available</th>
+                    <th>Actions</th>
+                    <th><a href="/addbook" class="btn btn-success btn-sm">Add Book</a></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% book.forEach(book => { %>
+                    <tr>
+                        <td><%= book.title %></td>
+                        <td><%= book.author %></td>
+                        <td><%= book.category %></td>
+                        <td><%= book.description %></td>
+                        <td><%= book.available ? 'Yes' : 'No' %></td>
+                        <td>
+                            <a href="/editbook/<%= book.id %>" class="btn btn-warning btn-sm">Edit</a>
+                            <a href="/deletebook/<%= book.id %>" class="btn btn-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

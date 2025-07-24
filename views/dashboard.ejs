@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-dark {
+            background-color: #343a40;
+        }
+        .container {
+            margin-top: 80px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-dark fixed-top">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Dashboard</span>
+            <div>
+                <% if (user) { %>
+                    <span class="text-white me-3">Welcome, <%= user.username %> (<%= user.role %>)</span>
+                    <% if (user.role === 'admin') { %>
+                        <a href="/admin" class="btn btn-outline-light btn-sm me-2">Admin Dashboard</a>
+                    <% } %>
+                    <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+                <% } else { %>
+                    <span class="text-white me-3">Welcome, Guest</span>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <p>This is your dashboard content.</p>
+    </div>
+
+    <div class="container">
+        <table class="table table-striped mt-4">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Available</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% book.forEach(book => { %>
+                    <tr>
+                        <td><%= book.title %></td>
+                        <td><%= book.author %></td>
+                        <td><%= book.category %></td>
+                        <td><%= book.description %></td>
+                        <td><%= book.available ? 'Yes' : 'No' %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
