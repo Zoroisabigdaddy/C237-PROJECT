@@ -2,10 +2,6 @@
   <h2>Edit Book</h2>
   <form action="/editbook/<%= book.id %>" method="POST">
     <div class="mb-3">
-      <label>Image URL</label>
-      <input type="text" name="image" class="form-control" value="<%= book.image %>" required>
-    </div>
-    <div class="mb-3">
       <label>Title</label>
       <input type="text" name="title" class="form-control" value="<%= book.title %>" required>
     </div>
