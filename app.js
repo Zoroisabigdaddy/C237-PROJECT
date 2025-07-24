@@ -129,6 +129,21 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
             console.error(err);
             return res.send("Error loading dashboard");
         }
+        results.forEach(book => {
+            if (book.date_published) {
+                const d = new Date(book.date_published);
+                book.date_input = d.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+                // 'DD-MM-YYYY'
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                book.date_display = `${day}/${month}/${year}`;
+            } else {
+                book.date_input = '';
+                book.date_display = '';
+            }
+        });
         res.render('dashboard', {
             user: req.session.user,
             book: results
@@ -144,6 +159,21 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
             console.error(err);
             return res.send("Error loading dashboard");
         }
+        results.forEach(book => {
+            if (book.date_published) {
+                const d = new Date(book.date_published);
+                book.date_input = d.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+                // 'DD-MM-YYYY'
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                book.date_display = `${day}/${month}/${year}`;
+            } else {
+                book.date_input = '';
+                book.date_display = '';
+            }
+        });
         res.render('admin', {
             user: req.session.user,
             book: results
@@ -194,13 +224,19 @@ app.get('/editbook/:id', checkAuthenticated, (req, res) => {
         }
 
         const book = results[0];
-
-        // Format the date_published to 'YYYY-MM-DD'
         if (book.date_published) {
             const d = new Date(book.date_published);
-            book.date_published = d.toISOString().slice(0, 10);
-        }
+            book.date_input = d.toISOString().slice(0, 10); // 'YYYY-MM-DD'
 
+            // Format for display as 'DD/MM/YYYY'
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            book.date_display = `${day}/${month}/${year}`; // 'DD/MM/YYYY'
+        } else {
+            book.date_input = '';
+            book.date_display = '';
+        }
         res.render('editbook', {
             book: book,
             user: req.session.user
