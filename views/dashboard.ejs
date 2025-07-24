@@ -13,6 +13,10 @@
         .container {
             margin-top: 80px;
         }
+
+        .form-inline .form-control {
+            margin-right: 10px
+        }
     </style>
 </head>
 <body>
@@ -37,16 +41,29 @@
     <!-- Main Content -->
     <div class="container">
         <p>This is your dashboard content.</p>
-    </div>
 
-    <div class="container">
+        <!-- Search & Filter Form -->
+        <form class="form-inline mb-4" method="GET" action="/dashboard">
+            <input type="text" class="form-control" name="search" placeholder="Search title or author" value="<%= search %>">
+            
+            <select class="form-control" name="category">
+                <option value="">All Categories</option>
+                <option value="Fiction" <%= category === 'Fiction' ? 'selected' : '' %>>Fiction</option>
+                <option value="Non-fiction" <%= category === 'Non-fiction' ? 'selected' : '' %>>Non-fiction</option>
+                <option value="Mystery" <%= category === 'Mystery' ? 'selected' : '' %>>Mystery</option>
+                <option value="Science" <%= category === 'Science' ? 'selected' : '' %>>Science</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary ml-2">Search</button>
+        </form>
+    
+        <!-- Book Table -->
         <table class="table table-striped mt-4">
             <thead>
                 <tr>
                      <th>Title</th>
                     <th>Author</th>
                     <th>Category</th>
-                    <th>Description</th>
                     <th>Date Published</th>
                     <th>Stocks</th>
                     <th>Available</th>
@@ -58,8 +75,8 @@
                         <td><%= book.title %></td>
                         <td><%= book.author %></td>
                         <td><%= book.category %></td>
-                        <td><%= book.description %></td>
                         <td><%= book.date_published %></td>
+                        <td><%= book.description %></td>
                         <td><%= book.stocks %></td>
                         <td><%= book.stocks > 0 ? 'Yes' : 'No' %></td>
                     </tr>
