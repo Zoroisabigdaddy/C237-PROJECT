@@ -119,10 +119,8 @@ app.post('/login', (req, res) => {
     });
 });
 
-// Dashboard - View and Search Books
+// Dashboard 
 app.get('/dashboard', checkAuthenticated, (req, res) => {
-    const search = req.query.search || '';
-    const category = req.query.category || '';
     const sql = "SELECT * FROM book";
     db.query(sql, (err, results) => {
         if (err) {
