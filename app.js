@@ -190,12 +190,22 @@ app.get('/editbook/:id', checkAuthenticated, (req, res) => {
         if (results.length === 0) {
             return res.send("Book not found");
         }
+
+        const book = results[0];
+
+        // Format the date_published to 'YYYY-MM-DD'
+        if (book.date_published) {
+            const d = new Date(book.date_published);
+            book.date_published = d.toISOString().slice(0, 10);
+        }
+
         res.render('editbook', {
-            book: results[0],
+            book: book,
             user: req.session.user
         });
     });
 });
+
 
 app.post('/editbook/:id', (req, res) => {
     const bookId = req.params.id;
