@@ -126,7 +126,14 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
     const search = req.query.search || '';
     const category = req.query.category || '';
     
-    let sql = "SELECT * FROM book WHERE 1=1"; // Start with a base query
+    // Base query with formatted dates
+    let sql = `
+      SELECT *, 
+      DATE_FORMAT(date_published, '%Y-%m-%d') AS date_input,
+      DATE_FORMAT(date_published, '%d/%m/%Y') AS date_display
+      FROM book WHERE 1=1
+    `;
+    
     // Initialize params array for prepared statements
     // This allows us to build the query dynamically based on filters
     let params = [];
@@ -173,7 +180,13 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
 
 // Admin dashboard
 app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
-    const sql = "SELECT * FROM book";
+    // Base query with formatted dates
+    let sql = `
+      SELECT *, 
+      DATE_FORMAT(date_published, '%Y-%m-%d') AS date_input,
+      DATE_FORMAT(date_published, '%d/%m/%Y') AS date_display
+      FROM book WHERE 1=1
+    `;
     db.query(sql, (err, results) => {
         if (err) {
             console.error(err);
@@ -232,7 +245,13 @@ app.post('/addbook', (req, res) => {
 // Edit Book
 app.get('/editbook/:id', checkAuthenticated, (req, res) => {
     const bookId = req.params.id;
-    const sql = "SELECT * FROM book WHERE id = ?";
+    const sql = `
+        SELECT *, 
+        DATE_FORMAT(date_published, '%Y-%m-%d') AS date_input,
+        DATE_FORMAT(date_published, '%d/%m/%Y') AS date_display
+        FROM book WHERE id = ?
+    `;
+    
     db.query(sql, [bookId], (err, results) => {
         if (err) {
             console.error(err);
