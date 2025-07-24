@@ -121,12 +121,28 @@ app.post('/login', (req, res) => {
 
 // Dashboard 
 app.get('/dashboard', checkAuthenticated, (req, res) => {
-    const sql = "SELECT * FROM book";
+    const search = req.query.search || '';
+    const category = req.query.category || '';
+    
+    const sql = "SELECT * FROM book WHERE 1=1";
+
+    // Search filter
+    if (search) {
+        sql += ` AND (title LIKE '%${search}%' OR author LIKE '%${search}%')`;
+    }
+
+    // category filter
+    if (category) {
+        sql += ` AND category = '${category}'`;
+    }
+    
     db.query(sql, (err, results) => {
         if (err) {
             console.error(err);
             return res.send("Error loading dashboard");
         }
+
+        // Format date fields
         results.forEach(book => {
             if (book.date_published) {
                 const d = new Date(book.date_published);
@@ -143,7 +159,9 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
         });
         res.render('dashboard', {
             user: req.session.user,
-            book: results
+            book: results,
+            search: search,
+            category: category
         });
     });
 });
