@@ -194,6 +194,7 @@ app.get('/editbook/:id', checkAuthenticated, (req, res) => {
             book: results[0],
             user: req.session.user
         });
+        
     });
 });
 
