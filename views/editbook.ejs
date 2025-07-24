@@ -17,6 +17,14 @@
       <label>Description</label>
       <textarea name="description" class="form-control" rows="3"><%= book.description %></textarea>
     </div>
+    <div class="mb-3">
+      <label>Date Published</label>
+      <input type="date" name="date_published" class="form-control" value="<%= book.date_input %>">
+    </div>
+    <div class="mb-3">
+      <label>Stocks</label>
+      <input type="number" name="stocks" class="form-control" value="<%= book.stocks %>" required>
+    </div>
     <button type="submit" class="btn btn-success">Update Book</button>
   </form>
 </div>

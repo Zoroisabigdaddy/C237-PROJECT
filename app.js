@@ -119,17 +119,52 @@ app.post('/login', (req, res) => {
     });
 });
 
-// Dashboard
+// Dashboard 
 app.get('/dashboard', checkAuthenticated, (req, res) => {
-    const sql = "SELECT * FROM book";
+    const search = req.query.search || '';
+    const category = req.query.category || '';
+    
+    let sql = "SELECT * FROM book WHERE 1=1"; // Start with a base query
+    // Initialize params array for prepared statements
+    // This allows us to build the query dynamically based on filters
+    let params = [];
+
+    // Search filter
+    if (search) {
+        sql += ` AND (title LIKE '%${search}%' OR author LIKE '%${search}%')`;
+    }
+
+    // category filter
+    if (category) {
+        sql += ` AND category = '${category}'`;
+    }
+    
     db.query(sql, (err, results) => {
         if (err) {
             console.error(err);
             return res.send("Error loading dashboard");
         }
+
+        // Format date fields
+        results.forEach(book => {
+            if (book.date_published) {
+                const d = new Date(book.date_published);
+                book.date_input = d.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+                const day = String(d.getDate()).padStart(2, '0'); 
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                book.date_display = `${day}/${month}/${year}`; // 'DD-MM-YYYY'
+            } else {
+                book.date_input = '';
+                book.date_display = '';
+            }
+        });
         res.render('dashboard', {
             user: req.session.user,
-            book: results
+            book: results,
+            search: search,
+            category: category
         });
     });
 });
@@ -142,6 +177,20 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
             console.error(err);
             return res.send("Error loading dashboard");
         }
+        results.forEach(book => {
+            if (book.date_published) {
+                const d = new Date(book.date_published);
+                book.date_input = d.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                book.date_display = `${day}/${month}/${year}`; // 'DD-MM-YYYY'
+            } else {
+                book.date_input = '';
+                book.date_display = '';
+            }
+        });
         res.render('admin', {
             user: req.session.user,
             book: results
@@ -161,12 +210,18 @@ app.get('/addbook', checkAuthenticated, (req, res) => {
 });
 
 app.post('/addbook', (req, res) => {
-    const { title, author, category, description } = req.body;
-    const sql = "INSERT INTO book (title, author, category, description) VALUES (?, ?, ?, ?)";
-    db.query(sql, [title, author, category, description], (err) => {
+    console.log("Form data received:", req.body);
+
+    const { title, author, category, date_published, description, stocks } = req.body;
+    const safeStocks = parseInt(stocks) || 0;
+    const availability = safeStocks > 0 ? 'Yes' : 'No';  // 👈 Set based on stocks
+
+    const sql = "INSERT INTO book (title, author, category, date_published, description, stocks, availability) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+    db.query(sql, [title, author, category, date_published, description, safeStocks, availability], (err) => {
         if (err) {
-            console.error(err);
-            return res.send("Error adding book");
+            console.error("SQL error:", err.sqlMessage);
+            return res.send("Error adding book: " + err.sqlMessage);
         }
         res.redirect('/dashboard');
     });
@@ -184,25 +239,47 @@ app.get('/editbook/:id', checkAuthenticated, (req, res) => {
         if (results.length === 0) {
             return res.send("Book not found");
         }
+
+        const book = results[0];
+        if (book.date_published) {
+            const d = new Date(book.date_published);
+            book.date_input = d.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+            // Format for display as 'DD/MM/YYYY'
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            book.date_display = `${day}/${month}/${year}`; // 'DD/MM/YYYY'
+        } else {
+            book.date_input = '';
+            book.date_display = '';
+        }
         res.render('editbook', {
-            book: results[0],
+            book: book,
             user: req.session.user
         });
     });
 });
 
+
 app.post('/editbook/:id', (req, res) => {
     const bookId = req.params.id;
-    const { title, author, category, description } = req.body;
-    const sql = "UPDATE book SET title = ?, author = ?, category = ?, description = ? WHERE id = ?";
-    db.query(sql, [title, author, category, description, bookId], (err) => {
+    const { title, author, category, description, date_published, stocks } = req.body;
+
+    const safeStocks = parseInt(stocks) || 0;
+    const availability = safeStocks > 0 ? 'Yes' : 'No';
+
+    const sql = "UPDATE book SET title = ?, author = ?, category = ?, description = ?, date_published = ?, stocks = ?, availability = ? WHERE id = ?";
+
+    db.query(sql, [title, author, category, description, date_published, safeStocks, availability, bookId], (err) => {
         if (err) {
-            console.error(err);
-            return res.send("Error updating book");
+            console.error("Error updating book:", err.sqlMessage);
+            return res.send("Error updating book: " + err.sqlMessage);
         }
         res.redirect('/dashboard');
     });
 });
+
 
 // Delete Book
 app.get('/deletebook/:id', checkAuthenticated, (req, res) => {
