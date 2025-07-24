@@ -3,6 +3,7 @@ const mysql = require('mysql2');
 const session = require('express-session');
 const flash = require('connect-flash');
 
+
 const app = express();
 
 // Database connection
@@ -20,6 +21,7 @@ db.connect((err) => {
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
+
 
 // Session middleware
 app.use(session({
