@@ -59,10 +59,11 @@
         <table class="table table-striped mt-4">
             <thead>
                 <tr>
-                     <th>Title</th>
+                    <th>Image</th>
+                    <th>Title</th>
                     <th>Author</th>
                     <th>Category</th>
-                    <th>description</th>
+                    <th>Description</th>
                     <th>Date Published</th>
                     <th>Stocks</th>
                     <th>Available</th>
@@ -71,6 +72,7 @@
             <tbody>
                 <% book.forEach(book => { %>
                     <tr>
+                        <td><img src="<%= book.image %>" alt="<%= book.image %>" class="img-thumbnail" style="max-width: 100px;"></td>
                         <td><%= book.title %></td>
                         <td><%= book.author %></td>
                         <td><%= book.category %></td>
