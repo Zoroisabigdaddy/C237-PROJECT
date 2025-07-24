@@ -5,41 +5,55 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: url('/images/BG.jpg') no-repeat center center fixed;
+            background: url('/images/BG 2.jpg') no-repeat center center fixed;
+            background-color: #fdf6e3;
             background-size: cover;
             font-family: 'Georgia', serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .container {
-            max-width: 600px;
-            margin-top: 80px;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
-            border: 1px solid #d0e0db;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 50px 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             text-align: center;
+            animation: fadeIn 0.6s ease;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         h1 {
             color: #5a4c36;
             margin-bottom: 30px;
+            font-size: 2.2rem;
         }
 
         a.btn-primary {
             background-color: #5a4c36;
             border-color: #5a4c36;
-            width: 120px;
-            margin: 8px;
+            width: 130px;
+            margin: 10px;
+            font-weight: bold;
         }
 
         a.btn-primary:hover {
             background-color: #3e3322;
             border-color: #3e3322;
+            transition: all 0.2s ease-in-out;
         }
 
         .alert-success {
             font-size: 0.95rem;
+            margin-bottom: 20px;
         }
 
         p {
