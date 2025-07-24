@@ -233,6 +233,8 @@ app.get('/editbook/:id', checkAuthenticated, (req, res) => {
             return res.send("Book not found");
         }
 
+        const book = results[0];
+
         res.render('editbook', {
             book: book,
             user: req.session.user
