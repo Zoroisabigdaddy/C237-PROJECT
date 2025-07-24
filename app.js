@@ -124,7 +124,10 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
     const search = req.query.search || '';
     const category = req.query.category || '';
     
-    const sql = "SELECT * FROM book WHERE 1=1";
+    let sql = "SELECT * FROM book WHERE 1=1"; // Start with a base query
+    // Initialize params array for prepared statements
+    // This allows us to build the query dynamically based on filters
+    let params = [];
 
     // Search filter
     if (search) {
