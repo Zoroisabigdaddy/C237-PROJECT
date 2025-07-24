@@ -44,8 +44,9 @@
                     <th>Author</th>
                     <th>Category</th>
                     <th>Description</th>
+                    <th>Date Published</th>
+                    <th>Stocks</th>
                     <th>Available</th>
-                    <th>Actions</th>
                     <th><a href="/addbook" class="btn btn-success btn-sm">Add Book</a></th>
                 </tr>
             </thead>
@@ -55,8 +56,10 @@
                         <td><%= book.title %></td>
                         <td><%= book.author %></td>
                         <td><%= book.category %></td>
+                        <td><%= book.date_published %></td>
                         <td><%= book.description %></td>
-                        <td><%= book.available ? 'Yes' : 'No' %></td>
+                        <td><%= book.stocks %></td>
+                        <td><%= book.stocks > 0 ? 'Yes' : 'No' %></td>
                         <td>
                             <a href="/editbook/<%= book.id %>" class="btn btn-warning btn-sm">Edit</a>
                             <a href="/deletebook/<%= book.id %>" class="btn btn-danger btn-sm">Delete</a>
