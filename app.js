@@ -134,10 +134,10 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
                 const d = new Date(book.date_published);
                 book.date_input = d.toISOString().slice(0, 10); // 'YYYY-MM-DD'
 
-                const day = String(d.getDate()).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0'); 
                 const month = String(d.getMonth() + 1).padStart(2, '0');
                 const year = d.getFullYear();
-                book.date_display = `${day}/${month}/${year}`;
+                book.date_display = `${day}/${month}/${year}`; // 'DD-MM-YYYY'
             } else {
                 book.date_input = '';
                 book.date_display = '';
@@ -166,7 +166,7 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
                 const day = String(d.getDate()).padStart(2, '0');
                 const month = String(d.getMonth() + 1).padStart(2, '0');
                 const year = d.getFullYear();
-                book.date_display = `${day}/${month}/${year}`;
+                book.date_display = `${day}/${month}/${year}`; // 'DD-MM-YYYY'
             } else {
                 book.date_input = '';
                 book.date_display = '';
