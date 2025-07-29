@@ -13,15 +13,47 @@
         .container {
             margin-top: 80px;
         }
-
         .form-inline .form-control {
             margin-right: 10px;
         }
-
-        /* Optional: Make card images uniform */
-        .card-img-top {
-            height: 200px;
-            object-fit: cover;
+        /* Horizontal card image on the left, content on right */
+        .horizontal-card {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+        }
+        .horizontal-card img {
+            width: 200px;
+            height: 100%;
+            object-fit: contain;
+            border-top-left-radius: 0.25rem;
+            border-bottom-left-radius: 0.25rem;
+        }
+        @media (max-width: 768px) {
+            .horizontal-card {
+                flex-direction: column;
+            }
+            .horizontal-card img {
+                width: 100%;
+                max-height: 200px;
+                object-fit: contain;
+                border-radius: 0.25rem 0.25rem 0 0;
+            }
+        }
+        .horizontal-card .card-body {
+            flex: 1 1 auto;
+            padding-left: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .horizontal-card .card-footer {
+            background: transparent;
+            border: 0;
+            padding-left: 0;
+            padding-right: 0;
+            padding-bottom: 0;
+            padding-top: 0.5rem;
         }
     </style>
 </head>
@@ -49,7 +81,6 @@
         <!-- Search & Filter Form -->
         <form class="form-inline mb-4" method="GET" action="/dashboard">
             <input type="text" class="form-control" name="search" placeholder="Search title or author" value="<%= search %>">
-            
             <select class="form-control" name="category">
                 <option value="">All Categories</option>
                 <option value="Fiction" <%= category === 'Fiction' ? 'selected' : '' %>>Fiction</option>
@@ -57,27 +88,27 @@
                 <option value="Mystery" <%= category === 'Mystery' ? 'selected' : '' %>>Mystery</option>
                 <option value="Science" <%= category === 'Science' ? 'selected' : '' %>>Science</option>
             </select>
-
             <button type="submit" class="btn btn-primary ml-2">Search</button>
         </form>
     
-        <!-- Book Cards (Replaced Table) -->
+        <!-- Book Cards in Horizontal Layout -->
         <div class="row">
             <% book.forEach(book => { %>
-                <div class="col-md-3 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <img src="/images/<%= book.images %>" class="card-img-top" alt="<%= book.title %>">
+                <div class="col-12 mb-4">
+                    <div class="card horizontal-card h-100 shadow-sm">
+                        <img src="/images/<%= book.images %>" alt="<%= book.title %>">
                         <div class="card-body">
                             <h5 class="card-title"><%= book.title %></h5>
-                            <p class="card-text">
+                            <p class="card-text mb-2">
                                 <strong>Author:</strong> <%= book.author %><br>
                                 <strong>Category:</strong> <%= book.category %><br>
                                 <small><%= book.description %></small>
                             </p>
-                        </div>
-                        <div class="card-footer text-muted">
-                            Published: <%= book.date_display %><br>
-                            <strong>Stock:</strong> <%= book.stocks %> (<%= book.stocks > 0 ? 'Available' : 'Not Available' %>)
+                            <div class="card-footer text-muted p-0 mt-auto">
+                                Published: <%= book.date_display %><br>
+                                <strong>Stock:</strong> <%= book.stocks %> 
+                                (<%= book.stocks > 0 ? 'Available' : 'Not Available' %>)
+                            </div>
                         </div>
                     </div>
                 </div>
