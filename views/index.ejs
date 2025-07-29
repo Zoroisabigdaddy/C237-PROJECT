@@ -61,8 +61,19 @@
         }
     </style>
 </head>
+
+
+  
+
 <body>
     <div class="container">
+
+        <% if (query && query.success) { %>
+        <div class="alert alert-success text-center">
+            ✅ Your message has been sent successfully!
+        </div>
+        <% } %>
+
         <h1>Welcome to the Library</h1>
 
         <% if (messages && messages.length > 0) { %>
@@ -77,6 +88,8 @@
             <a href="/register" class="btn btn-primary mt-3">Register</a>
             <a href="/login" class="btn btn-primary mt-3">Login</a>
         <% } %>
+
     </div>
 </body>
+
 </html>
