@@ -55,6 +55,7 @@ const checkAdmin = (req, res, next) => {
         return res.redirect('/');
     }
 };
+app.use(express.static('public'));
 
 // Home
 app.get('/', (req, res) => {
