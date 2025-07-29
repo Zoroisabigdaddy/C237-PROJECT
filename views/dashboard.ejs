@@ -15,7 +15,13 @@
         }
 
         .form-inline .form-control {
-            margin-right: 10px
+            margin-right: 10px;
+        }
+
+        /* Optional: Make card images uniform */
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -55,35 +61,28 @@
             <button type="submit" class="btn btn-primary ml-2">Search</button>
         </form>
     
-        <!-- Book Table -->
-        <table class="table table-striped mt-4">
-            <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>Title</th>
-                    <th>Author</th>
-                    <th>Category</th>
-                    <th>Description</th>
-                    <th>Date Published</th>
-                    <th>Stocks</th>
-                    <th>Available</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% book.forEach(book => { %>
-                    <tr>
-                        <td><img src="/images/<%= book.images %>" alt="<%= book.title %>" class="img-thumbnail" style="max-width: 100px;"></td>
-                        <td><%= book.title %></td>
-                        <td><%= book.author %></td>
-                        <td><%= book.category %></td>
-                        <td><%= book.description %></td>
-                        <td><%= book.date_display %></td>
-                        <td><%= book.stocks %></td>
-                        <td><%= book.stocks > 0 ? 'Yes' : 'No' %></td>
-                    </tr>
-                <% }) %>
-            </tbody>
-        </table>
+        <!-- Book Cards (Replaced Table) -->
+        <div class="row">
+            <% book.forEach(book => { %>
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <img src="/images/<%= book.images %>" class="card-img-top" alt="<%= book.title %>">
+                        <div class="card-body">
+                            <h5 class="card-title"><%= book.title %></h5>
+                            <p class="card-text">
+                                <strong>Author:</strong> <%= book.author %><br>
+                                <strong>Category:</strong> <%= book.category %><br>
+                                <small><%= book.description %></small>
+                            </p>
+                        </div>
+                        <div class="card-footer text-muted">
+                            Published: <%= book.date_display %><br>
+                            <strong>Stock:</strong> <%= book.stocks %> (<%= book.stocks > 0 ? 'Available' : 'Not Available' %>)
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
     </div>
 </body>
 </html>
