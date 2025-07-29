@@ -195,6 +195,28 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
   });
 });
 
+//contact us
+app.get('/contact', (req, res) => {
+  res.render('contact', { 
+    user: req.session.user, 
+    messages: req.flash('success'), 
+    errors: req.flash('error') 
+  });
+});
+
+app.post('/contact', (req, res) => {
+  const { name, email, message } = req.body;
+  if (!name || !email || !message) {
+    req.flash('error', 'All fields are required.');
+    return res.redirect('/contact');
+  }
+
+  // You can later store it in DB or send email
+  req.flash('success', 'Your message has been sent! We will get back to you soon.');
+  res.redirect('/contact');
+});
+
+
 // Logout
 app.get('/logout', (req, res) => {
   req.session.destroy();
