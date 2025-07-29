@@ -195,6 +195,24 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
   });
 });
 
+//contact us
+app.get('/contact', (req, res) => {
+    res.render('contact');
+});
+
+// Handle Contact Form Submission
+app.post('/contact', (req, res) => {
+    const { name, email, message } = req.body;
+
+    // Print message to console
+    console.log("New Contact Message:", { name, email, message });
+
+    // Redirect to home with success message
+    res.redirect('/?success=1');
+});
+
+
+
 // Logout
 app.get('/logout', (req, res) => {
   req.session.destroy();
