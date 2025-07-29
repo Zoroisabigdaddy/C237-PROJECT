@@ -201,6 +201,88 @@ app.get('/logout', (req, res) => {
   res.redirect('/');
 });
 
+// Add Book Form
+app.get('/addbook', checkAuthenticated, checkAdmin, (req, res) => {
+  res.render('addbook', { messages: req.flash('error') });
+});
+
+// Add Book POST
+app.post('/addbook', checkAuthenticated, checkAdmin, upload.single('images'), (req, res) => {
+  const { title, author, category, description, date_published } = req.body;
+  const image = req.file ? '/images/' + req.file.filename : null;
+
+  if (!title || !author || !category || !date_published) {
+    req.flash('error', 'Please fill in all required fields.');
+    return res.redirect('/addbook');
+  }
+
+  const sql = `
+    INSERT INTO book (title, author, category, description, image, date_published)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+  db.query(sql, [title, author, category, description, image, date_published], (err) => {
+    if (err) {
+      console.error(err);
+      req.flash('error', 'Failed to add book.');
+      return res.redirect('/addbook');
+    }
+    req.flash('success', 'Book added successfully!');
+    res.redirect('/admin');
+  });
+});
+
+// Edit Book Form
+app.get('/editbook/:id', checkAuthenticated, checkAdmin, (req, res) => {
+  const sql = 'SELECT * FROM book WHERE id = ?';
+  db.query(sql, [req.params.id], (err, result) => {
+    if (err || result.length === 0) return res.send('Book not found');
+    res.render('editbook', { book: result[0], messages: req.flash('error') });
+  });
+});
+
+// Edit Book POST
+app.post('/editbook/:id', checkAuthenticated, checkAdmin, upload.single('images'), (req, res) => {
+  const { title, author, category, description, date_published } = req.body;
+
+  let sql = `
+    UPDATE book SET title=?, author=?, category=?, description=?, date_published=?
+  `;
+  const params = [title, author, category, description, date_published];
+
+  // If new image uploaded
+  if (req.file) {
+    sql += `, image=?`;
+    params.push('/images/' + req.file.filename);
+  }
+
+  sql += ` WHERE id=?`;
+  params.push(req.params.id);
+
+  db.query(sql, params, (err) => {
+    if (err) {
+      console.error(err);
+      req.flash('error', 'Failed to update book.');
+      return res.redirect('/editbook/' + req.params.id);
+    }
+    req.flash('success', 'Book updated successfully!');
+    res.redirect('/admin');
+  });
+});
+
+// Delete Book
+app.get('/deletebook/:id', checkAuthenticated, checkAdmin, (req, res) => {
+  const sql = 'DELETE FROM book WHERE id = ?';
+  db.query(sql, [req.params.id], (err) => {
+    if (err) {
+      console.error(err);
+      req.flash('error', 'Failed to delete book.');
+      return res.redirect('/admin');
+    }
+    req.flash('success', 'Book deleted successfully!');
+    res.redirect('/admin');
+  });
+});
+
 // Server listen
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
