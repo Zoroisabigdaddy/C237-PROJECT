@@ -209,6 +209,7 @@ app.post('/contact', (req, res) => {
 
     // Redirect to home with success message
     res.redirect('/?success=1');
+    req.flash('success', 'Thank you for contacting us! We will get back to you soon.');
 });
 
 
