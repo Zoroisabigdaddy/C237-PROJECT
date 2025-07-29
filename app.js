@@ -211,9 +211,9 @@ app.post('/contact', (req, res) => {
     return res.redirect('/contact');
   }
 
-  // You can later store it in DB or send email
+  
   req.flash('success', 'Your message has been sent! We will get back to you soon.');
-  res.redirect('/contact');
+  res.redirect('/');
 });
 
 
