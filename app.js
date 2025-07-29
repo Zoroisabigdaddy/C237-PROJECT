@@ -258,7 +258,7 @@ app.post('/editbook/:id', (req, res) => {
             console.error("Error updating book:", err.sqlMessage);
             return res.send("Error updating book: " + err.sqlMessage);
         }
-        res.redirect('/dashboard');
+        res.redirect('/admin');
     });
 });
 
