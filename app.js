@@ -217,6 +217,7 @@ app.post('/contact', (req, res) => {
 });
 
 
+
 // Logout
 app.get('/logout', (req, res) => {
   req.session.destroy();
