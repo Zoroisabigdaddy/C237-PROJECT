@@ -272,7 +272,7 @@ app.get('/deletebook/:id', checkAuthenticated, (req, res) => {
             console.error("Error deleting book:", err);
             res.status(500).send('Error deleting book');
         } else {
-            res.redirect('/dashboard');
+            res.redirect('/admin');
         }
     });
 });
