@@ -95,7 +95,7 @@
         Add New Book
       </div>
       <div class="card-body">
-        <form action="/addbook" method="POST">
+        <form action="/addbook" method="POST" enctype="multipart/form-data">
           <div class="form-group">
             <label for="title">Title</label>
             <input type="text" id="title" name="title" class="form-control" required>
@@ -125,6 +125,10 @@
             <label for="stocks">Stocks</label>
             <input type="number" id="stocks" name="stocks" class="form-control" required>
           </div>
+
+          <div class="form-group">
+            <label for="images">Upload Image</label>
+            <input type="file" id="images" name="images" class="form-control" accept="image/*" required>
 
           <div class="btn-container">
             <button type="submit" class="btn btn-success w-100">Add Book</button>
