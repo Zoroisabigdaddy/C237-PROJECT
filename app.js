@@ -197,16 +197,26 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
 
 //contact us
 app.get('/contact', (req, res) => {
-    res.render('contact');
+    res.render('contact', {
+        success: req.flash('success'),
+        errors: req.flash('error')
+    });
 });
 
 // Handle Contact Form Submission
 app.post('/contact', (req, res) => {
     const { name, email, message } = req.body;
 
+    if (!name || !email || !message) {
+        req.flash('error', 'All fields are required.');
+        return res.redirect('/contact');
+    }
 
-    // Redirect to home with success message
-    req.flash('success', 'Thankee you for contacting us! We will get back to you soon.');
+    // Log message to console (or save to DB/file)
+    console.log("New Contact Message:", { name, email, message });
+
+    // Set success flash and redirect
+    req.flash('success', 'Thank you for contacting us! We will get back to you soon.');
     res.redirect('/contact');
 });
 
