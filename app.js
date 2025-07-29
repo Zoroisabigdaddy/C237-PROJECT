@@ -204,11 +204,9 @@ app.get('/contact', (req, res) => {
 app.post('/contact', (req, res) => {
     const { name, email, message } = req.body;
 
-    // Print message to console
-    console.log("New Contact Message:", { name, email, message });
 
     // Redirect to home with success message
-    req.flash('success', 'Thank you for contacting us! We will get back to you soon.');
+    req.flash('success', 'Thankee you for contacting us! We will get back to you soon.');
     res.redirect('/contact');
 });
 
