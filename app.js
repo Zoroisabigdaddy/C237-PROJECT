@@ -158,74 +158,48 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
         params.push(`%${category}%`);
     }
 
-    // Log query for debugging
-    console.log("SQL:", sql);
-    console.log("Params:", params);
+  db.query(sql, params, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.send('Error loading dashboard');
+    }
 
-    db.query(sql, params, (err, results) => {
-        if (err) {
-            console.error("Query error:", err);  // helpful error output
-            return res.send("Error loading dashboard");
-
-        }
-
-        res.render('dashboard', {
-        user: req.session.user,
-        book: results,
-        search: search,
-        category: category
-     });
-   });
+    res.render('dashboard', {
+      user: req.session.user,
+      book: results,
+      search,
+      category
+    });
+  });
 });
 
 // Admin dashboard
 app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
-    const search = req.query.search || '';
-    const category = req.query.category || '';
-    
-  let sql = `
+  const sql = `
     SELECT *,
     DATE_FORMAT(date_published, '%Y-%m-%d') AS date_input,
     DATE_FORMAT(date_published, '%d/%m/%Y') AS date_display
     FROM book
     ORDER BY date_published DESC
   `;
-   
-   let params = [];
 
-    // Search filter
-    if (search) {
-        sql += ` AND (title LIKE ? OR author LIKE ?)`;
-        params.push(`%${search}%`, `%${search}%`);
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.send('Error loading admin dashboard');
     }
 
-    // Category filter: match partial genre inside comma-separated string
-    if (category) {
-        sql += ` AND category LIKE ?`;
-        params.push(`%${category}%`);
-    }
-
-    // Log query for debugging
-    console.log("SQL:", sql);
-    console.log("Params:", params);
-
-    db.query(sql, params, (err, results) => {
-        if (err) {
-            console.error("Query error:", err);  // helpful error output
-            return res.send("Error loading dashboard");
-
-        }
-
-        res.render('admin', {
-        user: req.session.user,
-        book: results,
-        search: search,
-        category: category
-     });
-   });
+    res.render('admin', {
+      user: req.session.user,
+      book: results,
+      messages: req.flash('success'),
+      errors: req.flash('error')
+    });
+  });
 });
 
-//Contact us
+
+//contact us
 app.get('/contact', (req, res) => {
     res.render('contact', {
         success: req.flash('success'),
@@ -250,6 +224,8 @@ app.post('/contact', (req, res) => {
     res.redirect('/contact');
 });
 
+
+
 // Logout
 app.get('/logout', (req, res) => {
   req.session.destroy();
@@ -258,24 +234,65 @@ app.get('/logout', (req, res) => {
 
 // Add Book Form
 app.get('/addbook', checkAuthenticated, checkAdmin, (req, res) => {
-  res.render('addbook', { messages: req.flash('error') });
+  const sql = 'SELECT category FROM book';
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching categories:', err);
+      return res.send('Error loading categories');
+    }
+
+    const categorySet = new Set();
+    results.forEach(row => {
+      if (row.category) {
+        row.category.split(',').forEach(cat => {
+          categorySet.add(cat.trim());
+        });
+      }
+    });
+
+    const categories = Array.from(categorySet).sort();
+
+    // Retrieve previously entered form data from flash (optional)
+    const formData = req.flash('formData')[0] || {};
+
+    res.render('addbook', {
+      categories,
+      messages: req.flash('error'),
+      formData // pass formData so you can fill inputs with <%= formData.title %> etc.
+    });
+  });
 });
 
 // Add Book POST
 app.post('/addbook', checkAuthenticated, checkAdmin, upload.single('images'), (req, res) => {
-  const {title, author, category, description, date_published } = req.body;
+  let { title, author, category, date_published, description, stocks, newCategory } = req.body;
+
+  // Convert multiple categories array to comma-separated string
+  let finalCategory = category;
+  if (Array.isArray(category)) {
+    finalCategory = category.join(',');
+  }
+
+  // Append new category if provided
+  if (newCategory && newCategory.trim() !== '') {
+    finalCategory = finalCategory ? finalCategory + ',' + newCategory.trim() : newCategory.trim();
+  }
+
+  const safestocks = parseInt(stocks) || 0;
+  const availability = safestocks > 0 ? 'Available' : 'Not Available';
   const images = req.file ? req.file.filename : null;
 
-  if (!images||!title || !author || !category || !date_published) {
+  if (!images || !title || !author || !finalCategory || !date_published || !description || !stocks || !availability) {
     req.flash('error', 'Please fill in all required fields.');
     return res.redirect('/addbook');
   }
 
   const sql = `
-    INSERT INTO book (images, title, author, category, description, image, date_published)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO book (images, title, author, category, date_published, description, stocks, availability)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
-  db.query(sql, [images, title, author, category, description, date_published], (err) => {
+  db.query(sql, [images, title, author, finalCategory, date_published, description, safestocks, availability], (err) => {
     if (err) {
       console.error(err);
       req.flash('error', 'Failed to add book.');
@@ -287,35 +304,84 @@ app.post('/addbook', checkAuthenticated, checkAdmin, upload.single('images'), (r
 });
 
 // Edit Book Form
-app.get('/editbook/:id', checkAuthenticated, checkAdmin, (req, res) => {
-  const sql = 'SELECT * FROM book WHERE id = ?';
-  db.query(sql, [req.params.id], (err, result) => {
-    if (err || result.length === 0) return res.send('Book not found');
-    res.render('editbook', { book: result[0], messages: req.flash('error') });
+app.get('/editbook/:id', checkAuthenticated, (req, res) => {
+  const bookId = req.params.id;
+
+  const bookSql = `
+    SELECT *, 
+    DATE_FORMAT(date_published, '%Y-%m-%d') AS date_input,
+    DATE_FORMAT(date_published, '%d/%m/%Y') AS date_display
+    FROM book WHERE id = ?
+  `;
+
+  const categorySql = `SELECT category FROM book`; // fetch all categories (comma-separated)
+
+  db.query(bookSql, [bookId], (err, bookResults) => {
+    if (err) {
+      console.error(err);
+      return res.send("Error loading book");
+    }
+    if (bookResults.length === 0) {
+      return res.send("Book not found");
+    }
+
+    const book = bookResults[0];
+
+    db.query(categorySql, (err, categoryResults) => {
+      if (err) {
+        console.error(err);
+        return res.send("Error loading categories");
+      }
+
+      // Extract all categories strings and split them by comma
+      let allCategories = categoryResults
+        .map(row => row.category)
+        .filter(Boolean) // Remove null or empty
+        .map(str => str.split(',').map(c => c.trim())) // Split and trim each string
+        .flat();
+
+      // Deduplicate categories
+      const categories = [...new Set(allCategories)].sort();
+
+      res.render('editbook', {
+        book,
+        categories,
+        user: req.session.user
+      });
+    });
   });
 });
 
 // Edit Book POST
 app.post('/editbook/:id', checkAuthenticated, checkAdmin, upload.single('images'), (req, res) => {
-  const { images, title, author, category, description, date_published } = req.body;
+  let { title, author, category, description, date_published, stocks } = req.body;
 
+  // Convert category array to comma-separated string if multiple selected
+  if (Array.isArray(category)) {
+    category = category.join(',');
+  }
+
+  const safeStocks = parseInt(stocks) || 0;
+  const availability = safeStocks > 0 ? 'Available' : 'Not Available';
+
+  // Start SQL for updating book
   let sql = `
-    UPDATE book SET title=?, author=?, category=?, description=?, date_published=?
+    UPDATE book SET title = ?, author = ?, category = ?, description = ?, date_published = ?, stocks = ?, availability = ?
   `;
-  const params = [title, author, category, description, date_published];
+  const params = [title, author, category, description, date_published, safeStocks, availability];
 
-  // If new image uploaded
+  // If a new image file is uploaded, update the images field
   if (req.file) {
-    sql += `, images=?`;
+    sql += `, images = ?`;
     params.push(req.file.filename);
   }
 
-  sql += ` WHERE id=?`;
+  sql += ` WHERE id = ?`;
   params.push(req.params.id);
 
   db.query(sql, params, (err) => {
     if (err) {
-      console.error(err);
+      console.error("Error updating book:", err.sqlMessage);
       req.flash('error', 'Failed to update book.');
       return res.redirect('/editbook/' + req.params.id);
     }
