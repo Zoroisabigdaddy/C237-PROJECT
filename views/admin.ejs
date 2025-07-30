@@ -103,7 +103,7 @@
                         <h5><%= book.title %></h5>
                         <p class="mb-1"><strong>Author:</strong> <%= book.author %></p>
                         <p class="mb-1"><strong>Category:</strong> <%= book.category %></p>
-                        <p class="mb-1"><small><%= book.description %></small></p>
+                        <p class="mb-1"><strong>Description:</strong> <%= book.description %></p>
                         <p class="mb-1 text-muted">Published: <%= book.date_display %></p>
                         <p><strong>Stocks:</strong> <%= book.stocks %> (<%= book.stocks > 0 ? 'Available' : 'Not Available' %>)</p>
                     </div>
