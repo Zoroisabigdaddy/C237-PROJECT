@@ -175,6 +175,8 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
 
 // Admin dashboard
 app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
+  const search = req.query.search || '';
+  const category = req.query.category || '';
   const sql = `
     SELECT *,
     DATE_FORMAT(date_published, '%Y-%m-%d') AS date_input,
@@ -193,7 +195,9 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
       user: req.session.user,
       book: results,
       messages: req.flash('success'),
-      errors: req.flash('error')
+      errors: req.flash('error'),
+      search,
+      category
     });
   });
 });
