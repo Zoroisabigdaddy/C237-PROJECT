@@ -6,16 +6,23 @@
 
   <style>
     body {
-      background-color: #f0f2f5; /* subtle background color */
+      background-image: url('/images/BG 2.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
     }
 
     .container {
+      min-height: calc(100vh - 56px); /* fill full viewport height minus navbar height */
+      margin-top: 56px; /* offset container below fixed navbar */
       background-color: #ffffff;
       padding: 30px 40px;
       border-radius: 10px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      max-width: 600px; /* keep your original max-width */
-      margin-top: 80px; /* keep original margin */
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between; /* push content and button apart if needed */
     }
 
     h2 {
