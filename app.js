@@ -247,7 +247,7 @@ app.post('/addbook', checkAuthenticated, checkAdmin, upload.single('images'), (r
     INSERT INTO book (images, title, author, category, description, image, date_published)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  db.query(sql, [images, title, author, category, description, image, date_published], (err) => {
+  db.query(sql, [images, title, author, category, description, date_published], (err) => {
     if (err) {
       console.error(err);
       req.flash('error', 'Failed to add book.');
@@ -272,9 +272,9 @@ app.post('/editbook/:id', checkAuthenticated, checkAdmin, upload.single('images'
   const { images, title, author, category, description, date_published } = req.body;
 
   let sql = `
-    UPDATE book SET images=?, title=?, author=?, category=?, description=?, date_published=?
+    UPDATE book SET title=?, author=?, category=?, description=?, date_published=?
   `;
-  const params = [images, title, author, category, description, date_published];
+  const params = [title, author, category, description, date_published];
 
   // If new image uploaded
   if (req.file) {
