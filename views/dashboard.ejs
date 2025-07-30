@@ -102,10 +102,11 @@
                             <p class="card-text mb-2">
                                 <strong>Author:</strong> <%= book.author %><br>
                                 <strong>Category:</strong> <%= book.category %><br>
-                                <small><%= book.description %></small>
+                                <strong>Description:</strong><br>
+                                <%= book.description %>
                             </p>
                             <div class="card-footer text-muted p-0 mt-auto">
-                                Published: <%= book.date_display %><br>
+                                <strong>Published:</strong> <%= book.date_display %><br>
                                 <strong>Stock:</strong> <%= book.stocks %> 
                                 (<%= book.stocks > 0 ? 'Available' : 'Not Available' %>)
                             </div>
