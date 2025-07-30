@@ -158,19 +158,24 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
         params.push(`%${category}%`);
     }
 
-  db.query(sql, params, (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.send('Error loading dashboard');
-    }
+    // Log query for debugging
+    console.log("SQL:", sql);
+    console.log("Params:", params);
 
-    res.render('dashboard', {
-      user: req.session.user,
-      book: results,
-      search,
-      category
-    });
-  });
+    db.query(sql, params, (err, results) => {
+        if (err) {
+            console.error("Query error:", err);  // helpful error output
+            return res.send("Error loading dashboard");
+
+        }
+
+        res.render('dashboard', {
+        user: req.session.user,
+        book: results,
+        search: search,
+        category: category
+     });
+   });
 });
 
 // Admin dashboard
@@ -182,24 +187,42 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
     FROM book
     ORDER BY date_published DESC
   `;
+   
+   let params = [];
 
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.send('Error loading admin dashboard');
+    // Search filter
+    if (search) {
+        sql += ` AND (title LIKE ? OR author LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`);
     }
 
-    res.render('admin', {
-      user: req.session.user,
-      book: results,
-      messages: req.flash('success'),
-      errors: req.flash('error')
-    });
-  });
+    // Category filter: match partial genre inside comma-separated string
+    if (category) {
+        sql += ` AND category LIKE ?`;
+        params.push(`%${category}%`);
+    }
+
+    // Log query for debugging
+    console.log("SQL:", sql);
+    console.log("Params:", params);
+
+    db.query(sql, params, (err, results) => {
+        if (err) {
+            console.error("Query error:", err);  // helpful error output
+            return res.send("Error loading dashboard");
+
+        }
+
+        res.render('dashboard', {
+        user: req.session.user,
+        book: results,
+        search: search,
+        category: category
+     });
+   });
 });
 
-
-//contact us
+//Contact us
 app.get('/contact', (req, res) => {
     res.render('contact', {
         success: req.flash('success'),
@@ -224,8 +247,6 @@ app.post('/contact', (req, res) => {
     res.redirect('/contact');
 });
 
-
-
 // Logout
 app.get('/logout', (req, res) => {
   req.session.destroy();
@@ -239,21 +260,19 @@ app.get('/addbook', checkAuthenticated, checkAdmin, (req, res) => {
 
 // Add Book POST
 app.post('/addbook', checkAuthenticated, checkAdmin, upload.single('images'), (req, res) => {
-  const {title, author, category, date_published, description, stocks} = req.body;
-  const safestocks = parseInt(stocks) || 0;
-  const availability = safestocks > 0 ? 'Available' : 'Not Available';
+  const {title, author, category, description, date_published } = req.body;
   const images = req.file ? req.file.filename : null;
 
-  if (!images||!title || !author || !category || !date_published || !description || !stocks || !availability ) {
+  if (!images||!title || !author || !category || !date_published) {
     req.flash('error', 'Please fill in all required fields.');
     return res.redirect('/addbook');
   }
 
   const sql = `
-    INSERT INTO book (images, title, author, category,  date_published, description, stocks, availability)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO book (images, title, author, category, description, image, date_published)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  db.query(sql, [images, title, author, category, date_published, description, safestocks, availability], (err) => {
+  db.query(sql, [images, title, author, category, description, date_published], (err) => {
     if (err) {
       console.error(err);
       req.flash('error', 'Failed to add book.');
@@ -265,58 +284,35 @@ app.post('/addbook', checkAuthenticated, checkAdmin, upload.single('images'), (r
 });
 
 // Edit Book Form
-app.get('/editbook/:id', checkAuthenticated, (req, res) => {
-    const bookId = req.params.id;
-    const sql = `
-        SELECT *, 
-        DATE_FORMAT(date_published, '%Y-%m-%d') AS date_input,
-        DATE_FORMAT(date_published, '%d/%m/%Y') AS date_display
-        FROM book WHERE id = ?
-    `;
-    
-    db.query(sql, [bookId], (err, results) => {
-        if (err) {
-            console.error(err);
-            return res.send("Error loading book");
-        }
-        if (results.length === 0) {
-            return res.send("Book not found");
-        }
-
-        const book = results[0];
-
-        res.render('editbook', {
-            book: book,
-            user: req.session.user
-        });
-        
-    });
+app.get('/editbook/:id', checkAuthenticated, checkAdmin, (req, res) => {
+  const sql = 'SELECT * FROM book WHERE id = ?';
+  db.query(sql, [req.params.id], (err, result) => {
+    if (err || result.length === 0) return res.send('Book not found');
+    res.render('editbook', { book: result[0], messages: req.flash('error') });
+  });
 });
 
 // Edit Book POST
 app.post('/editbook/:id', checkAuthenticated, checkAdmin, upload.single('images'), (req, res) => {
-  const { title, author, category, description, date_published, stocks } = req.body;
-
-  const safeStocks = parseInt(stocks) || 0;
-  const availability = safeStocks > 0 ? 'Available' : 'Not Available';
+  const { images, title, author, category, description, date_published } = req.body;
 
   let sql = `
-    UPDATE book SET title = ?, author = ?, category = ?, description = ?, date_published = ?, stocks = ?, availability = ?
+    UPDATE book SET title=?, author=?, category=?, description=?, date_published=?
   `;
-  const params = [title, author, category, description, date_published, safeStocks, availability];
+  const params = [title, author, category, description, date_published];
 
   // If new image uploaded
   if (req.file) {
-    sql += `, images = ?`;
+    sql += `, images=?`;
     params.push(req.file.filename);
   }
 
-  sql += ` WHERE id = ?`;
+  sql += ` WHERE id=?`;
   params.push(req.params.id);
 
   db.query(sql, params, (err) => {
     if (err) {
-      console.error("Error updating book:", err.sqlMessage);
+      console.error(err);
       req.flash('error', 'Failed to update book.');
       return res.redirect('/editbook/' + req.params.id);
     }
