@@ -1,326 +1,147 @@
-const express = require('express');
-const mysql = require('mysql2');
-const session = require('express-session');
-const flash = require('connect-flash');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Book</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
 
-const app = express();
-
-// Multer storage configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/images');
-    },
-    filename: (req, file, cb) => {
-        cb(null, file.originalname);
-    }
-});
-
-const upload = multer({ storage: storage });
-
-// Database connection
-const db = mysql.createConnection({
-  host: 'c237-all.mysql.database.azure.com',
-  user: 'c237admin',
-  password: 'c2372025!',
-  database: 'c237_ca_t1_e65e'
-});
-
-db.connect(err => {
-  if (err) throw err;
-  console.log('Connected to database');
-});
-
-app.use(express.urlencoded({ extended: false }));
-app.use(express.static('public'));
-
-// Session middleware
-app.use(session({
-  secret: 'secret',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 } // 7 days
-}));
-
-app.use(flash());
-
-// Set EJS as the view engine
-app.set('view engine', 'ejs');
-
-// Middleware: Check if user is logged in
-const checkAuthenticated = (req, res, next) => {
-  if (req.session.user) return next();
-  req.flash('error', 'You must be logged in to view this page.');
-  return res.redirect('/login');
-};
-
-// Middleware: Check if user is admin
-const checkAdmin = (req, res, next) => {
-  if (req.session.user && req.session.user.role === 'admin') {
-    return next();
-  }
-  req.flash('error', 'You must be an admin to view this page.');
-  return res.redirect('/');
-};
-
-// Home
-app.get('/', (req, res) => {
-  res.render('index', { user: req.session.user, messages: req.flash('success') });
-});
-
-// Register (simplified, no hashing demonstration)
-app.get('/register', (req, res) => {
-  res.render('register', {
-    messages: req.flash('error'),
-    formData: req.flash('formData')[0]
-  });
-});
-
-app.post('/register', (req, res) => {
-  const { username, email, password, address, contact, role } = req.body;
-  if (!username || !email || !password || !address || !contact) {
-    req.flash('error', 'All fields are required.');
-    req.flash('formData', req.body);
-    return res.redirect('/register');
-  }
-  if (password.length < 6) {
-    req.flash('error', 'Password must be at least 6 characters long.');
-    req.flash('formData', req.body);
-    return res.redirect('/register');
-  }
-
-  const sql = 'INSERT INTO users (username, email, password, address, contact, role) VALUES (?, ?, SHA1(?), ?, ?, ?)';
-  db.query(sql, [username, email, password, address, contact, role], (err) => {
-    if (err) {
-      req.flash('error', 'Registration failed. Possibly email already used.');
-      req.flash('formData', req.body);
-      return res.redirect('/register');
-    }
-    req.flash('success', 'Registration successful! Please log in.');
-    res.redirect('/login');
-  });
-});
-
-// Login
-app.get('/login', (req, res) => {
-  res.render('login', {
-    messages: req.flash('success'),
-    errors: req.flash('error')
-  });
-});
-
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    req.flash('error', 'All fields are required.');
-    return res.redirect('/login');
-  }
-
-  const sql = 'SELECT * FROM users WHERE email = ? AND password = SHA1(?)';
-  db.query(sql, [email, password], (err, results) => {
-    if (err) throw err;
-    if (results.length > 0) {
-      req.session.user = results[0];
-      req.flash('success', 'Login successful!');
-      return res.redirect('/dashboard');
-    } else {
-      req.flash('error', 'Invalid email or password.');
-      return res.redirect('/login');
-    }
-  });
-});
-
-// Dashboard
-app.get('/dashboard', checkAuthenticated, (req, res) => {
-  const search = req.query.search || '';
-  const category = req.query.category || '';
-
-  let sql = `
-    SELECT *,
-    DATE_FORMAT(date_published, '%Y-%m-%d') AS date_input,
-    DATE_FORMAT(date_published, '%d/%m/%Y') AS date_display
-    FROM book WHERE 1=1
-  `;
-
-  let params = [];
-
-    // Search filter
-    if (search) {
-        sql += ` AND (title LIKE ? OR author LIKE ?)`;
-        params.push(`%${search}%`, `%${search}%`);
+    /* Custom Styles */
+    body {
+      background-image: url('/images/BG 2.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
     }
 
-    // Category filter: match partial genre inside comma-separated string
-    if (category) {
-        sql += ` AND category LIKE ?`;
-        params.push(`%${category}%`);
+    .container {
+      max-width: 800px;
+      margin-top: 50px;
+      background-color: rgba(105, 98, 98, 0.7); /* Semi-transparent overlay for text visibility */
+      padding: 30px;
+      border-radius: 10px;
     }
 
-    // Log query for debugging
-    console.log("SQL:", sql);
-    console.log("Params:", params);
-
-    db.query(sql, params, (err, results) => {
-        if (err) {
-            console.error("Query error:", err);  // helpful error output
-            return res.send("Error loading dashboard");
-
-        }
-
-        res.render('dashboard', {
-        user: req.session.user,
-        book: results,
-        search: search,
-        category: category
-     });
-   });
-});
-
-// Admin dashboard
-app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
-  const sql = `
-    SELECT *,
-    DATE_FORMAT(date_published, '%Y-%m-%d') AS date_input,
-    DATE_FORMAT(date_published, '%d/%m/%Y') AS date_display
-    FROM book
-    ORDER BY date_published DESC
-  `;
-
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.send('Error loading admin dashboard');
+    .form-control {
+      border-radius: 10px;
     }
 
-    res.render('admin', {
-      user: req.session.user,
-      book: results,
-      messages: req.flash('success'),
-      errors: req.flash('error')
-    });
-  });
-});
-
-
-//contact us
-app.get('/contact', (req, res) => {
-    res.render('contact', {
-        success: req.flash('success'),
-        errors: req.flash('error')
-    });
-});
-
-// Handle Contact Form Submission
-app.post('/contact', (req, res) => {
-    const { name, email, message } = req.body;
-
-    if (!name || !email || !message) {
-        req.flash('error', 'All fields are required.');
-        return res.redirect('/contact');
+    .btn {
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
     }
 
-    // Log message to console (or save to DB/file)
-    console.log("New Contact Message:", { name, email, message });
-
-    // Set success flash and redirect
-    req.flash('success', 'Thank you for contacting us! We will get back to you soon.');
-    res.redirect('/contact');
-});
-
-
-
-// Logout
-app.get('/logout', (req, res) => {
-  req.session.destroy();
-  res.redirect('/');
-});
-
-// Add Book Form
-app.get('/addbook', checkAuthenticated, checkAdmin, (req, res) => {
-  res.render('addbook', { messages: req.flash('error') });
-});
-
-// Add Book POST
-app.post('/addbook', checkAuthenticated, checkAdmin, upload.single('images'), (req, res) => {
-  const {title, author, category, description, date_published } = req.body;
-  const images = req.file ? req.file.filename : null;
-
-  if (!images||!title || !author || !category || !date_published) {
-    req.flash('error', 'Please fill in all required fields.');
-    return res.redirect('/addbook');
-  }
-
-  const sql = `
-    INSERT INTO book (images, title, author, category, description, image, date_published)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `;
-  db.query(sql, [images, title, author, category, description, date_published], (err) => {
-    if (err) {
-      console.error(err);
-      req.flash('error', 'Failed to add book.');
-      return res.redirect('/addbook');
+    .btn-success {
+      background-color: #136bca;
+      border-color: #777272;
     }
-    req.flash('success', 'Book added successfully!');
-    res.redirect('/admin');
-  });
-});
 
-// Edit Book Form
-app.get('/editbook/:id', checkAuthenticated, checkAdmin, (req, res) => {
-  const sql = 'SELECT * FROM book WHERE id = ?';
-  db.query(sql, [req.params.id], (err, result) => {
-    if (err || result.length === 0) return res.send('Book not found');
-    res.render('editbook', { book: result[0], messages: req.flash('error') });
-  });
-});
-
-// Edit Book POST
-app.post('/editbook/:id', checkAuthenticated, checkAdmin, upload.single('images'), (req, res) => {
-  const { images, title, author, category, description, date_published } = req.body;
-
-  let sql = `
-    UPDATE book SET title=?, author=?, category=?, description=?, date_published=?
-  `;
-  const params = [title, author, category, description, date_published];
-
-  // If new image uploaded
-  if (req.file) {
-    sql += `, images=?`;
-    params.push(req.file.filename);
-  }
-
-  sql += ` WHERE id=?`;
-  params.push(req.params.id);
-
-  db.query(sql, params, (err) => {
-    if (err) {
-      console.error(err);
-      req.flash('error', 'Failed to update book.');
-      return res.redirect('/editbook/' + req.params.id);
+    .btn-success:hover {
+      background-color: #0a4599;
+      border-color: #c9d1ca;
     }
-    req.flash('success', 'Book updated successfully!');
-    res.redirect('/admin');
-  });
-});
 
-// Delete Book
-app.get('/deletebook/:id', checkAuthenticated, checkAdmin, (req, res) => {
-  const sql = 'DELETE FROM book WHERE id = ?';
-  db.query(sql, [req.params.id], (err) => {
-    if (err) {
-      console.error(err);
-      req.flash('error', 'Failed to delete book.');
-      return res.redirect('/admin');
+    .btn-primary {
+      background-color: #5b5f62;
+      border-color: #424548;
     }
-    req.flash('success', 'Book deleted successfully!');
-    res.redirect('/admin');
-  });
-});
 
-// Server listen
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+    .btn-primary:hover {
+      background-color: #969ea5;
+      border-color: #cfd6dd;
+    }
+
+    .card {
+      border-radius: 10px;
+      box-shadow: 4px 8px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      font-size: 1.75rem;
+      font-weight: bold;
+      color: #343a40;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .mb-3 {
+      margin-bottom: 1.5rem;
+    }
+
+    .mt-3 {
+      margin-top: 1rem;
+    }
+
+    .back-btn {
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 0px; /* Slightly reduced margin for closer button placement */
+    }
+
+    .btn-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px; /* Space between buttons */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="card-header text-center">
+        Edit Book Details
+      </div>
+      <div class="card-body">
+        <form action="/editbook/<%= book.id %>" method="POST" enctype="multipart/form-data">
+          <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" class="form-control" value="<%= book.title %>" required>
+          </div>
+
+          <div class="form-group">
+            <label for="author">Author</label>
+            <input type="text" id="author" name="author" class="form-control" value="<%= book.author %>" required>
+          </div>
+
+          <div class="form-group">
+            <label for="category">Category</label>
+            <input type="text" id="category" name="category" class="form-control" value="<%= book.category %>">
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" class="form-control" rows="4"><%= book.description %></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="date_published">Date Published</label>
+            <input type="date" id="date_published" name="date_published" class="form-control" value="<%= book.date_input %>">
+          </div>
+
+          <div class="form-group">
+            <label for="stocks">Stocks</label>
+            <input type="number" id="stocks" name="stocks" class="form-control" value="<%= book.stocks %>" required>
+          </div>
+
+          <div class="form-group mt-3">
+            <label for="images">Current Image</label>
+            <input type="text" name="currentimage" class="form-control" value="<%= book.images %>" readonly><br>
+            <img src ="/images/<%= book.images %>" alt="<%= book.images %>" class="img-fluid mb-3" style="max-width: 100%; height: auto;">
+            New Image:<br> <input type="file" id="images" name="images" class="form-control" accept="image/*"><br><br>
+          </div>
+
+          <div class="btn-container">
+            <button type="submit" class="btn btn-success w-100">Update Book</button>
+            <a href="/admin" class="btn btn-primary w-100 back-btn">Back to Dashboard</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
