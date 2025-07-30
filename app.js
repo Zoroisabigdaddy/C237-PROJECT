@@ -144,15 +144,19 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
     FROM book WHERE 1=1
   `;
 
-  const params = [];
-  if (search) {
-    sql += ` AND (title LIKE ? OR author LIKE ?)`;
-    params.push(`%${search}%`, `%${search}%`);
-  }
-  if (category) {
-    sql += ` AND category = ?`;
-    params.push(category);
-  }
+  let params = [];
+
+    // Search filter
+    if (search) {
+        sql += ` AND (title LIKE ? OR author LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`);
+    }
+
+    // Category filter: match partial genre inside comma-separated string
+    if (category) {
+        sql += ` AND category LIKE ?`;
+        params.push(`%${category}%`);
+    }
 
   db.query(sql, params, (err, results) => {
     if (err) {
