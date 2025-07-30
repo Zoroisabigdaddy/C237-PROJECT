@@ -158,19 +158,24 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
         params.push(`%${category}%`);
     }
 
-  db.query(sql, params, (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.send('Error loading dashboard');
-    }
+    // Log query for debugging
+    console.log("SQL:", sql);
+    console.log("Params:", params);
 
-    res.render('dashboard', {
-      user: req.session.user,
-      book: results,
-      search,
-      category
-    });
-  });
+    db.query(sql, params, (err, results) => {
+        if (err) {
+            console.error("Query error:", err);  // helpful error output
+            return res.send("Error loading dashboard");
+
+        }
+
+        res.render('dashboard', {
+        user: req.session.user,
+        book: results,
+        search: search,
+        category: category
+     });
+   });
 });
 
 // Admin dashboard
