@@ -21,6 +21,8 @@
             display: flex;
             flex-direction: row;
             align-items: stretch;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
         .horizontal-card img {
             width: 200px;
@@ -61,7 +63,7 @@
     <!-- Top Navbar -->
     <nav class="navbar navbar-dark fixed-top">
         <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">Dashboard</span>
+            <span class="navbar-brand mb-0 h1"><strong>Dashboard</strong></span>
             <div>
                 <% if (user) { %>
                     <span class="text-white me-3">Welcome, <%= user.username %> (<%= user.role %>)</span>

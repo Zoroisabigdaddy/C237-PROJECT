@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
+    <title> Admin Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -86,7 +86,7 @@
     <!-- Top Navbar -->
     <nav class="navbar navbar-dark fixed-top">
         <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">Dashboard</span>
+            <span class="navbar-brand mb-0 h1"><strong>Admin Dashboard</strong></span>
             <div>
                 <span class="text-white me-3">Welcome, <%= user.username %> (<%= user.role %>)</span>
                 <% if (user.role === 'admin') { %>

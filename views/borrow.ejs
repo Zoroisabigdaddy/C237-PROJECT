@@ -3,27 +3,86 @@
 <head>
   <title>Borrow Book: <%= book.title %></title>
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+
+  <style>
+    body {
+      background-color: #f0f2f5; /* subtle background color */
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      max-width: 600px; /* keep your original max-width */
+      margin-top: 80px; /* keep original margin */
+    }
+
+    h2 {
+      border-bottom: 2px solid #28a745;
+      padding-bottom: 10px;
+      margin-bottom: 25px;
+      font-weight: 600;
+    }
+
+    label {
+      font-weight: 600;
+      color: #343a40;
+    }
+
+    input[readonly] {
+      background-color: #e9ecef;
+    }
+
+    .btn-success {
+      background-color: #28a745;
+      border-color: #28a745;
+      font-weight: 600;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .btn-success:hover {
+      background-color: #218838;
+      border-color: #1e7e34;
+    }
+
+    /* Style the navbar texts for better spacing */
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.3rem;
+    }
+
+    .navbar .text-white {
+      font-weight: 500;
+      font-size: 1rem;
+    }
+
+    /* Style alerts inside container */
+    .alert {
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    form button.btn-success {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 0; /* optionally adjust padding for better height */
+}
+  </style>
 </head>
 <body>
   <nav class="navbar navbar-dark bg-dark fixed-top">
     <div class="container-fluid">  
       <span class="navbar-brand">Borrow Book</span>
       <div>
-        <span class="text-white me-3">Welcome, <%= user.username %></span>
+        <span class="text-white me-3">Welcome, <%= user.username %> <%= user.role %></span>
         <a href="/dashboard" class="btn btn-outline-light btn-sm me-2">Back to Dashboard</a>
         <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
       </div>
     </div>
   </nav>
 
-  <div class="container" style="margin-top: 80px; max-width: 600px;">
-    <% if (messages.length > 0) { %>
-      <div class="alert alert-success"><%= messages %></div>
-    <% } %>
-    <% if (errors.length > 0) { %>
-      <div class="alert alert-danger"><%= errors %></div>
-    <% } %>
-
+  
+  <div class="container mt-5">
     <h2>Borrow Book: <%= book.title %></h2>
     <p><strong>Author:</strong> <%= book.author %></p>
     <p><strong>Category:</strong> <%= book.category %></p>
