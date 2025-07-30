@@ -15,11 +15,29 @@
       color: #333;
     }
 
+    /* Back to Dashboard Button */
+    .dashboard-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      text-decoration: none;
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .dashboard-btn:hover {
+      background-color: #0056b3;
+    }
+
     ul {
       list-style-type: none;
       padding: 0;
       max-width: 800px;
-      margin: 20px auto;
+      margin: 60px auto 20px auto; /* Added top margin to avoid overlap with button */
     }
 
     li {
@@ -87,6 +105,9 @@
 </head>
 <body>
   <h1>Contact Messages</h1>
+
+  <!-- Back to Dashboard Button -->
+  <a href="/admin" class="dashboard-btn">Back to Admin Dashboard</a>
 
   <% if (messages.length === 0) { %>
     <p style="text-align:center;">No messages found.</p>
