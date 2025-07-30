@@ -216,7 +216,7 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
 
         }
 
-        res.render('dashboard', {
+        res.render('admin', {
         user: req.session.user,
         book: results,
         search: search,
