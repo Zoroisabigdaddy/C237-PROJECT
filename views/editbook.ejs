@@ -119,7 +119,7 @@
 
           <div class="form-group">
             <label for="date_published">Date Published</label>
-            <input type="date" id="date_published" name="date_published" class="form-control" value="<%= book.date_input %>">
+            <input type="date" id="date_published" name="date_published" class="form-control" value="<%= book.date_published %>">
           </div>
 
           <div class="form-group">
@@ -129,9 +129,9 @@
 
           <div class="form-group mt-3">
             <label for="images">Current Image</label>
-            <input type="text" name="currentimage" class="form-control" value="<%= book.image %>" readonly><br>
-            <img src ="/images/<%= book.images %>" alt="<%= book.title %>" class="img-fluid mb-3" style="max-width: 100%; height: auto;">
-            New Image:<br> <input type="file" id="images" name="images" class="form-control" accept="image/*" value="<%= book.images %>"><br><br>
+            <input type="text" name="currentimage" class="form-control" value="<%= book.images %>" readonly><br>
+            <img src ="/images/<%= book.images %>" alt="<%= book.images %>" class="img-fluid mb-3" style="max-width: 100%; height: auto;">
+            New Image:<br> <input type="file" id="images" name="images" class="form-control" accept="image/*"><br><br>
           </div>
 
           <div class="btn-container">

@@ -10,15 +10,14 @@ const app = express();
 
 // Multer storage configuration
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'public/images/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
-  }
+    destination: (req, file, cb) => {
+        cb(null, 'public/images');
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    }
 });
+
 const upload = multer({ storage: storage });
 
 // Database connection
@@ -236,19 +235,19 @@ app.get('/addbook', checkAuthenticated, checkAdmin, (req, res) => {
 
 // Add Book POST
 app.post('/addbook', checkAuthenticated, checkAdmin, upload.single('images'), (req, res) => {
-  const { title, author, category, description, date_published } = req.body;
-  const image = req.file ? '/images/' + req.file.filename : null;
+  const {title, author, category, description, date_published } = req.body;
+  const images = req.file ? req.file.filename : null;
 
-  if (!title || !author || !category || !date_published) {
+  if (!images||!title || !author || !category || !date_published) {
     req.flash('error', 'Please fill in all required fields.');
     return res.redirect('/addbook');
   }
 
   const sql = `
-    INSERT INTO book (title, author, category, description, image, date_published)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO book (images, title, author, category, description, image, date_published)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  db.query(sql, [title, author, category, description, image, date_published], (err) => {
+  db.query(sql, [images, title, author, category, description, image, date_published], (err) => {
     if (err) {
       console.error(err);
       req.flash('error', 'Failed to add book.');
@@ -270,17 +269,17 @@ app.get('/editbook/:id', checkAuthenticated, checkAdmin, (req, res) => {
 
 // Edit Book POST
 app.post('/editbook/:id', checkAuthenticated, checkAdmin, upload.single('images'), (req, res) => {
-  const { title, author, category, description, date_published } = req.body;
+  const { images, title, author, category, description, date_published } = req.body;
 
   let sql = `
-    UPDATE book SET title=?, author=?, category=?, description=?, date_published=?
+    UPDATE book SET images=?, title=?, author=?, category=?, description=?, date_published=?
   `;
-  const params = [title, author, category, description, date_published];
+  const params = [images, title, author, category, description, date_published];
 
   // If new image uploaded
   if (req.file) {
-    sql += `, image=?`;
-    params.push('/images/' + req.file.filename);
+    sql += `, images=?`;
+    params.push(req.file.filename);
   }
 
   sql += ` WHERE id=?`;
