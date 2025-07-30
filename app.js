@@ -408,6 +408,130 @@ app.get('/deletebook/:id', checkAuthenticated, checkAdmin, (req, res) => {
   });
 });
 
+// Display all available books with borrow button
+app.get('/borrow', checkAuthenticated, (req, res) => {
+  const sql = `
+    SELECT *,
+    DATE_FORMAT(date_published, '%Y-%m-%d') AS date_input,
+    DATE_FORMAT(date_published, '%d/%m/%Y') AS date_display
+    FROM book
+    WHERE stocks > 0 AND availability = 'Available'
+    ORDER BY title
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.send('Error loading available books');
+    }
+
+    res.render('borrow', {
+      user: req.session.user,
+      book: results,
+      messages: req.flash('success'),
+      errors: req.flash('error'),
+    });
+  });
+});
+
+app.get('/borrow/book/:id', checkAuthenticated, (req, res) => {
+  const bookId = req.params.id;
+
+  const sql = 'SELECT * FROM book WHERE id = ? AND stocks > 0 AND availability = "Available"';
+  db.query(sql, [bookId], (err, results) => {
+    if (err || results.length === 0) {
+      req.flash('error', 'Book not found or not available.');
+      return res.redirect('/borrow');
+    }
+    res.render('borrow', {
+      user: req.session.user,
+      book: results[0],
+      messages: req.flash('success'),
+      errors: req.flash('error'),
+    });
+  });
+});
+
+app.post('/borrow/book/:id', checkAuthenticated, (req, res) => {
+  const bookId = req.params.id;
+  const { name, email, contact } = req.body;
+
+  if (!name || !email || !contact) {
+    req.flash('error', 'Please fill in all required fields.');
+    return res.redirect(`/borrow/book/${bookId}`);
+  }
+
+  // First, get current stocks and bookname from db
+  const getBookSql = 'SELECT stocks, title FROM book WHERE id = ?';
+  db.query(getBookSql, [bookId], (err, results) => {
+    if (err || results.length === 0) {
+      req.flash('error', 'Book not found.');
+      return res.redirect('/dashboard');
+    }
+
+    const currentStocks = results[0].stocks;
+    const bookname = results[0].title;
+
+    if (currentStocks <= 0) {
+      req.flash('error', 'This book is currently out of stock.');
+      return res.redirect('/dashboard');
+    }
+
+    const newStocks = currentStocks - 1;
+    const availability = newStocks > 0 ? 'Available' : 'Not Available';
+
+    // Start transaction to update book stocks and insert borrow record
+    db.beginTransaction(err => {
+      if (err) {
+        console.error(err);
+        req.flash('error', 'Database error.');
+        return res.redirect('/dashboard');
+      }
+
+      // Update book stocks and availability
+      const updateBookSql = 'UPDATE book SET stocks = ?, availability = ? WHERE id = ?';
+      db.query(updateBookSql, [newStocks, availability, bookId], (err) => {
+        if (err) {
+          return db.rollback(() => {
+            console.error(err);
+            req.flash('error', 'Failed to update book stock.');
+            return res.redirect('/dashboard');
+          });
+        }
+
+        // Insert borrow record into borrow table
+        const insertBorrowSql = `
+          INSERT INTO borrow (name, email, contact, bookname, book_id)
+          VALUES (?, ?, ?, ?, ?)
+        `;
+
+        db.query(insertBorrowSql, [name, email, contact, bookname, bookId], (err) => {
+          if (err) {
+            return db.rollback(() => {
+              console.error(err);
+              req.flash('error', 'Failed to save borrow record.');
+              return res.redirect('/dashboard');
+            });
+          }
+
+          db.commit((err) => {
+            if (err) {
+              return db.rollback(() => {
+                console.error(err);
+                req.flash('error', 'Database commit failed.');
+                return res.redirect('/dashboard');
+              });
+            }
+
+            req.flash('success', 'Book borrowed successfully!');
+            res.redirect('/dashboard'); // redirect wherever you want
+          });
+        });
+      });
+    });
+  });
+});
+
 // Server listen
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

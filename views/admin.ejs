@@ -123,6 +123,9 @@
                     <div class="card-buttons">
                         <a href="/editbook/<%= book.id %>" class="btn btn-warning btn-sm">Edit</a>
                         <a href="/deletebook/<%= book.id %>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this book?');">Delete</a>
+                         <% if (book.stocks > 0) { %>
+                            <a href="/borrow/book/<%= book.id %>" class="btn btn-primary btn-sm">Borrow</a>
+                            <% } %>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Borrow Book: <%= book.title %></title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">  
+      <span class="navbar-brand">Borrow Book</span>
+      <div>
+        <span class="text-white me-3">Welcome, <%= user.username %></span>
+        <a href="/dashboard" class="btn btn-outline-light btn-sm me-2">Back to Dashboard</a>
+        <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="margin-top: 80px; max-width: 600px;">
+    <% if (messages.length > 0) { %>
+      <div class="alert alert-success"><%= messages %></div>
+    <% } %>
+    <% if (errors.length > 0) { %>
+      <div class="alert alert-danger"><%= errors %></div>
+    <% } %>
+
+    <h2>Borrow Book: <%= book.title %></h2>
+    <p><strong>Author:</strong> <%= book.author %></p>
+    <p><strong>Category:</strong> <%= book.category %></p>
+
+    <form method="POST" action="/borrow/book/<%= book.id %>">
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input required type="text" id="name" name="name" class="form-control" />
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input required type="email" id="email" name="email" class="form-control" />
+      </div>
+
+      <div class="mb-3">
+        <label for="contact" class="form-label">Contact Number</label>
+        <input required type="text" id="contact" name="contact" class="form-control" />
+      </div>
+
+      <div class="mb-3">
+        <label for="bookname" class="form-label">Book to Borrow</label>
+        <input type="text" id="bookname" name="bookname" class="form-control" value="<%= book.title %>" readonly>
+      </div>
+
+      <button type="submit" class="btn btn-success">Confirm Borrow</button>
+    </form>
+  </div>
+</body>
+</html>
