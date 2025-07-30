@@ -104,10 +104,15 @@
             <input type="text" class="form-control" name="search" placeholder="Search title or author" value="<%= search %>">
             <select class="form-control" name="category">
                 <option value="">All Categories</option>
-                <option value="Fiction" <%= category === 'Fiction' ? 'selected' : '' %>>Fiction</option>
+                <option value="Fictional" <%= category === 'Fictional' ? 'selected' : '' %>>Fictional</option>
                 <option value="Non-Fiction" <%= category === 'Non-Fiction' ? 'selected' : '' %>>Non-Fiction</option>
                 <option value="Mystery" <%= category === 'Mystery' ? 'selected' : '' %>>Mystery</option>
                 <option value="Science" <%= category === 'Science' ? 'selected' : '' %>>Science</option>
+                <option value="Manga" <%= category === 'Manga' ? 'selected' : '' %>>Manga</option>
+                <option value="Adventure" <%= category === 'Adventure' ? 'selected' : '' %>>Adventure</option>
+                <option value="Fantasy" <%= category === 'Fantasy' ? 'selected' : '' %>>Fantasy</option>
+                <option value="Horror" <%= category === 'Horror' ? 'selected' : '' %>>Horror</option>
+
             </select>
             <button type="submit" class="btn btn-primary ml-2">Search</button>
         </form>
