@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Reply</title>
+</head>
+<body>
+  <h1>Contact Messages</h1>
+
+  <% if (messages.length === 0) { %>
+    <p>No messages found.</p>
+  <% } else { %>
+    <ul>
+      <% messages.forEach(msg => { %>
+        <li>
+          <strong><%= msg.username %></strong> (<%= msg.email %>): <%= msg.message %>
+          <% if (msg.reply_message) { %>
+            <p><strong>Admin Reply:</strong> <%= msg.reply_message %></p>
+          <% } %>
+
+          <!-- Reply Form -->
+          <form action="/admin_reply" method="POST" style="margin-top:5px;">
+            <input type="hidden" name="id" value="<%= msg.id %>">
+            <textarea name="reply_message" placeholder="Write your reply..." required><%= msg.reply_message || '' %></textarea>
+            <button type="submit">Send Reply</button>
+          </form>
+
+          <!-- Delete Form -->
+          <div class="card-buttons">
+            <form action="/admin_delete/<%= msg.id %>" method="POST" style="display:inline;">
+              <button type="submit" onclick="return confirm('Are you sure you want to delete this message?');">Delete</button>
+            </form>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</body>
+</html>

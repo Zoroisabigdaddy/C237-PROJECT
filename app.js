@@ -211,23 +211,88 @@ app.get('/contact', (req, res) => {
     });
 });
 
-// Handle Contact Form Submission
-app.post('/contact', (req, res) => {
-    const { name, email, message } = req.body;
 
-    if (!name || !email || !message) {
+// Handle Contact Form Submission and updates the contact table in database
+app.post('/contact', (req, res) => {
+    const { username, email, message } = req.body;
+
+    if (!username || !email || !message) {
         req.flash('error', 'All fields are required.');
         return res.redirect('/contact');
     }
 
-    // Log message to console (or save to DB/file)
-    console.log("New Contact Message:", { name, email, message });
+    const sql = 'INSERT INTO contact (username, email, message) VALUES (?, ?, ?)';
+    db.query(sql, [username, email, message], (err) => {
+        if (err) {
+            console.error('Error saving contact message:', err);
+            req.flash('error', 'Failed to send message. Please try again later.');
+            return res.redirect('/contact');
+        }
 
-    // Set success flash and redirect
-    req.flash('success', 'Thank you for contacting us! We will get back to you soon.');
-    res.redirect('/contact');
+        console.log("New Contact Message:", { username, email, message });
+        req.flash('success', 'Thank you for contacting us! We will get back to you soon.');
+        res.redirect('/contact');
+    });
 });
 
+// Show the admin reply page
+app.get('/admin_reply', (req, res) => {
+  const sql = 'SELECT * FROM contact ORDER BY id DESC'; // Optional: show newest first
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching contact messages:', err);
+      req.flash('error', 'Failed to load contact messages.');
+      return res.redirect('/admin');
+    }
+
+    res.render('admin_reply', {
+      user: req.session.user || null,
+      messages: results
+    });
+  });
+});
+
+// Handle admin reply
+app.post('/admin_reply', (req, res) => {
+  const { id, reply_message } = req.body;
+
+  if (!id || !reply_message) {
+    req.flash('error', 'Reply message is required.');
+    return res.redirect('/admin_reply');
+  }
+
+  const sql = `
+    UPDATE contact
+    SET reply_message = ?
+    WHERE id = ?
+  `;
+
+  db.query(sql, [reply_message, id], (err, result) => {
+    if (err) {
+      console.error('Error updating reply:', err);
+      req.flash('error', 'Failed to update reply.');
+      return res.redirect('/admin_reply');
+    }
+
+    req.flash('success', 'Reply sent successfully!');
+    res.redirect('/admin_reply');
+  });
+});
+
+// Delete Contact Message
+app.post('/admin_delete/:id', checkAuthenticated, checkAdmin, (req, res) => {
+  const sql = 'DELETE FROM contact WHERE id = ?';
+  db.query(sql, [req.params.id], (err) => {
+    if (err) {
+      console.error(err);
+      req.flash('error', 'Failed to delete contact message.');
+      return res.redirect('/admin');
+    }
+    req.flash('success', 'Contact message deleted successfully!');
+    res.redirect('/admin');
+  });
+});
 
 
 // Logout
