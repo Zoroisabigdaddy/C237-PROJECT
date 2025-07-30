@@ -92,31 +92,31 @@
         </form>
     
         <!-- Book Cards in Horizontal Layout -->
-        <div class="row">
-            <% book.forEach(book => { %>
-                <div class="col-12 mb-4">
-                    <div class="card horizontal-card h-100 shadow-sm">
-                        <img src="/images/<%= book.images %>" alt="<%= book.title %>">
-                        <div class="card-body">
-                            <h5 class="card-title"><%= book.title %></h5>
-                            <p class="card-text mb-2">
-                                <strong>Author:</strong> <%= book.author %><br>
-                                <strong>Category:</strong> <%= book.category %><br>
-                                <strong>Description:</strong><br>
-                                <%= book.description %>
-                            </p>
-                            <div class="card-footer text-muted p-0 mt-auto">
-                                <strong>Published:</strong> <%= book.date_display %><br>
-                                <strong>Stock:</strong> <%= book.stocks %> 
-                                <% if (book.stocks > 0) { %>
-                                    <a href="/borrow/book/<%= book.id %>" class="btn btn-primary btn-sm">Borrow</a>
-                                    <% } %>
-                            </div>
+    <div class="row">
+        <% book.forEach(book => { %>
+            <div class="col-12 mb-4">
+                <div class="card horizontal-card h-100 shadow-sm">
+                    <img src="/images/<%= book.images %>" alt="<%= book.title %>">
+                    <div class="card-body">
+                        <h5 class="card-title"><%= book.title %></h5>
+                        <p class="card-text mb-2">
+                            <strong>Author:</strong> <%= book.author %><br>
+                            <strong>Category:</strong> <%= book.category %><br>
+                            <strong>Description:</strong><br>
+                            <%= book.description %>
+                        </p>
+                        <div class="card-footer text-muted p-0 mt-auto">
+                            Published: <%= book.date_display %><br>
+                            Stock: <%= book.stocks %> 
+                            (<%= book.stocks > 0 ? 'Available' : 'Not Available' %>)
                         </div>
+                        <% if (book.stocks > 0) { %>
+                            <div class="mt-2">
+                                <a href="/borrow/book/<%= book.id %>" class="btn btn-primary btn-sm">Borrow</a>
+                            </div>
+                        <% } %>
                     </div>
                 </div>
-            <% }) %>
-        </div>
+            </div>
+        <% }) %>
     </div>
-</body>
-</html>
