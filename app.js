@@ -195,6 +195,7 @@ app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
   });
 });
 
+
 //contact us
 app.get('/contact', (req, res) => {
     res.render('contact', {
