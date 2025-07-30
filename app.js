@@ -180,7 +180,10 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
 
 // Admin dashboard
 app.get('/admin', checkAuthenticated, checkAdmin, (req, res) => {
-  const sql = `
+    const search = req.query.search || '';
+    const category = req.query.category || '';
+    
+  let sql = `
     SELECT *,
     DATE_FORMAT(date_published, '%Y-%m-%d') AS date_input,
     DATE_FORMAT(date_published, '%d/%m/%Y') AS date_display
